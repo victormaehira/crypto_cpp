@@ -57,6 +57,14 @@ int main() {
 
 	std::cout << "smallKeySize = " << smallKeySize << "\n";
 
+	//getCurrentCounterAndUsedTime
+	unsigned char data[8] = { 0, 0, 0, 0, 0, 41, 33, -71 };
+
+	int ptrDigestSize;
+	unsigned char * hash = hmacSha1(&ptrDigestSize, data, 8, smallSecretKey, smallKeySize);
+
+	std::cout << "ptrDigestSize = " << ptrDigestSize << "\n";
+
 	return 0;
 }
 
