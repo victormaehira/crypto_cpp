@@ -3,6 +3,8 @@
 #include <iostream>
 #include <string>
 #include <cstring>
+#include <ctime>
+#include <iomanip> 
 #include "KeyExchangeCBridge.h"
 
 void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr)
@@ -40,9 +42,7 @@ int main() {
 	std::string otherPublicKeyPEM = "-----BEGIN PUBLIC KEY-----\n" + otherKey + "\n-----END PUBLIC KEY-----\n";
 
 	std::cout << "otherPublicKeyPEM = " << otherPublicKeyPEM << "\n";
-	//var largeKeySize : Int32 = 0
-		//let largeSecretKey : UnsafeMutablePointer<UInt8> =
-		//combineOtherPublicKey(&largeKeySize, otherPublicKeyAsCPointer, privateKeyPEM, publicKeyPEM);
+	
 	char * otherPublicKeyAsCPointer = new char[otherPublicKeyPEM.length() + 1];
 
 	strcpy_s(otherPublicKeyAsCPointer, otherPublicKeyPEM.length() + 1, otherPublicKeyPEM.c_str());
@@ -58,12 +58,38 @@ int main() {
 	std::cout << "smallKeySize = " << smallKeySize << "\n";
 
 	//getCurrentCounterAndUsedTime
-	unsigned char data[8] = { 0, 0, 0, 0, 0, 41, 33, -71 };
+	//unsigned char data[8] = { 0, 0, 0, 0, 0, 41, 33, -71 };
+
+	//teste do getCurrentCounterAndUsedTime
+	std::time_t current = std::time(nullptr);
+	uint64_t timer = (uint64_t)(floor(current / 30));
+
+	// Little Endian Shift
+	unsigned char data[8];
+	data[0] = (unsigned char)(timer >> 56);
+	data[1] = (unsigned char)(timer >> 48);
+	data[2] = (unsigned char)(timer >> 40);
+	data[3] = (unsigned char)(timer >> 32);
+	data[4] = (unsigned char)(timer >> 24);
+	data[5] = (unsigned char)(timer >> 16);
+	data[6] = (unsigned char)(timer >> 8);
+	data[7] = (unsigned char)(timer);
 
 	int ptrDigestSize;
 	unsigned char * hash = hmacSha1(&ptrDigestSize, data, 8, smallSecretKey, smallKeySize);
 
 	std::cout << "ptrDigestSize = " << ptrDigestSize << "\n";
+
+	int offset = hash[strlen((char*)hash) - 1] & 0xf;
+	int value = (int)(((int(hash[offset]) & 0x7f) << 24) |
+		((int(hash[offset + 1] & 0xff)) << 16) |
+		((int(hash[offset + 2] & 0xff)) << 8) |
+		(int(hash[offset + 3]) & 0xff));
+	int len = 6;
+	int mod = value % int(pow(10, len));
+	std::cout << std::setfill('0') << std::setw(6) << mod << std::endl;
+	 
+	std::cout << "std::to_string(mod) = " << std::to_string(mod) << std::endl;
 
 	return 0;
 }
